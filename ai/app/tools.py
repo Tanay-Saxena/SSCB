@@ -3,6 +3,7 @@ from langchain_core.tools import tool
 from typing import Optional
 
 from . import backend_client
+from .vector_store import search_reviews as _search_reviews
 
 
 @tool
@@ -80,6 +81,16 @@ def get_cart_contents(cart_id: int) -> str:
     return json.dumps(result)
 
 
+@tool
+def semantic_review_search(query: str, product_name: Optional[str] = None) -> str:
+    """Search product reviews using semantic similarity. Use this when the user asks
+    things like 'what do users say about...', 'how do people feel about...', or
+    'find reviews mentioning...'. This searches review TEXT meaning, not just keywords.
+    Optionally filter by product_name to scope to a specific product."""
+    results = _search_reviews(query, n_results=5, product_name=product_name)
+    return json.dumps(results)
+
+
 ALL_TOOLS = [
     list_vendors,
     get_vendor_details,
@@ -90,4 +101,5 @@ ALL_TOOLS = [
     compare_product_prices,
     get_product_reviews,
     get_cart_contents,
+    semantic_review_search,
 ]

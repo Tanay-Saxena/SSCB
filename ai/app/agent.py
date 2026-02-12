@@ -70,9 +70,26 @@ def get_agent():
     return _agent
 
 
+MAX_RETRIES = 5
+
+
 def run_agent(query: str) -> dict:
     agent = get_agent()
-    result = agent.invoke({"messages": [{"role": "user", "content": query}]})
+
+    for attempt in range(MAX_RETRIES):
+        try:
+            result = agent.invoke({"messages": [{"role": "user", "content": query}]})
+            break
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            if attempt < MAX_RETRIES - 1:
+                continue
+            return {
+                "answer": f"The AI agent encountered an error after {MAX_RETRIES} attempts. Please try again.",
+                "sources": [],
+                "tool_calls": [],
+            }
 
     messages = result.get("messages", [])
 

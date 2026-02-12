@@ -2,7 +2,10 @@ fastapi
 uvicorn[standard]
 langchain
 langchain-openai
+langchain-groq
+langgraph
 httpx
 pydantic
 pydantic-settings
 langsmith
+chromadb

@@ -4,6 +4,7 @@ from typing import Optional
 
 from ..agent import run_agent
 from .. import backend_client
+from ..vector_store import embed_reviews
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -48,6 +49,13 @@ def cart_optimization(body: CartQueryRequest):
         f"For each item, check if cheaper vendor options exist."
     )
     return AIResponse(**result)
+
+
+@router.post("/embed-reviews")
+def trigger_embed_reviews():
+    """Fetch all reviews from the backend and embed them into ChromaDB for semantic search."""
+    count = embed_reviews()
+    return {"status": "ok", "reviews_embedded": count}
 
 
 @router.post("/budget-check", response_model=AIResponse)

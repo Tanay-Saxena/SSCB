@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import and_, or_
 from typing import Optional
 
 from ..database import get_db
@@ -19,12 +20,18 @@ def list_products(category: Optional[str] = None, db: Session = Depends(get_db))
 
 @router.get("/search", response_model=list[ProductResponse])
 def search_products(query: str = Query(..., min_length=1), db: Session = Depends(get_db)):
-    pattern = f"%{query}%"
-    return db.query(Product).filter(
-        (Product.name.ilike(pattern)) |
-        (Product.brand.ilike(pattern)) |
-        (Product.category.ilike(pattern))
-    ).all()
+    # Split query into words so "diwali gifts" matches products containing any term
+    terms = query.strip().split()
+    conditions = []
+    for term in terms:
+        pattern = f"%{term}%"
+        conditions.append(
+            (Product.name.ilike(pattern)) |
+            (Product.brand.ilike(pattern)) |
+            (Product.category.ilike(pattern)) |
+            (Product.description.ilike(pattern))
+        )
+    return db.query(Product).filter(or_(*conditions)).all()
 
 
 @router.get("/{product_id}", response_model=ProductDetailResponse)
